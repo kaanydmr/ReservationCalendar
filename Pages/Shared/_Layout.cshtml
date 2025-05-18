@@ -1,0 +1,319 @@
+﻿@using Azure
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Project</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Project.styles.css" asp-append-version="true" />
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+    @RenderSection("Styles", required: false)
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .dark-mode body {
+            background-color: #111 !important;
+        }
+        /* Optional: adjust card and text colors for dark mode */
+        .dark-mode .card, .dark-mode .navbar, .dark-mode .footer {
+            background-color: #222 !important;
+            color: #fff !important;
+        }
+        .dark-mode .card-header {
+            background-color: #222 !important;
+            color: #fff !important;
+        }
+        .dark-mode .nav-link, .dark-mode .navbar-brand {
+            color: #fff !important;
+        }
+        .dark-mode body {
+        background-color: #111 !important;
+        color: #f1f1f1 !important;
+        }
+        .dark-mode .card,
+        .dark-mode .navbar,
+        .dark-mode .footer,
+        .dark-mode .modal-content,
+        .dark-mode .table,
+        .dark-mode .calendar-container {
+            background-color: #222 !important;
+            color: #f1f1f1 !important;
+        }
+        .dark-mode .card-header,
+        .dark-mode .modal-header,
+        .dark-mode .bg-primary,
+        .dark-mode .navbar .bg-primary,
+        .dark-mode .table thead,
+        .dark-mode .table-light {
+            background-color: #222 !important;
+            color: #fff !important;
+            border-bottom: 1px solid #333 !important;
+        }
+        .dark-mode .list-group-item,
+        .dark-mode .table,
+        .dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #181818 !important;
+            color: #f1f1f1 !important;
+        }
+        .dark-mode .form-control,
+        .dark-mode .form-select,
+        .dark-mode input,
+        .dark-mode textarea {
+            background-color: #181818 !important;
+            color: #fff !important;
+            border-color: #444 !important;
+        }
+        .dark-mode .form-control:focus,
+        .dark-mode .form-select:focus {
+            background-color: #222 !important;
+            color: #fff !important;
+            border-color: #0d6efd !important;
+        }
+        .dark-mode .btn-primary,
+        .dark-mode .btn-outline-primary {
+            background-color: #0d6efd !important;
+            color: #fff !important;
+            border-color: #0d6efd !important;
+        }
+        .dark-mode .btn-primary:hover,
+        .dark-mode .btn-outline-primary:hover {
+            background-color: #0056b3 !important;
+            color: #fff !important;
+            border-color: #0056b3 !important;
+        }
+        .dark-mode .btn-secondary,
+        .dark-mode .btn-outline-secondary {
+            background-color: #444 !important;
+            color: #fff !important;
+            border-color: #444 !important;
+        }
+        .dark-mode .btn-danger,
+        .dark-mode .btn-outline-danger {
+            background-color: #dc3545 !important;
+            color: #fff !important;
+            border-color: #dc3545 !important;
+        }
+        .dark-mode .alert {
+            background-color: #222 !important;
+            color: #fff !important;
+            border-color: #444 !important;
+        }
+        .dark-mode .alert-warning {
+            background-color: #664d03 !important;
+            color: #fff !important;
+            border-color: #ffecb5 !important;
+        }
+        .dark-mode .alert-danger {
+            background-color: #842029 !important;
+            color: #fff !important;
+            border-color: #f5c2c7 !important;
+        }
+        .dark-mode .alert-success {
+            background-color: #0f5132 !important;
+            color: #fff !important;
+            border-color: #badbcc !important;
+        }
+        .dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #23272b !important;
+        }
+        .dark-mode .table-warning {
+            background-color: #665c00 !important;
+            color: #fff !important;
+        }
+        .dark-mode .badge.bg-success {
+            background-color: #198754 !important;
+        }
+        .dark-mode .badge.bg-secondary {
+            background-color: #6c757d !important;
+        }
+        .dark-mode .form-check-input {
+            background-color: #222 !important;
+            border-color: #444 !important;
+        }
+        .dark-mode .form-check-label {
+            color: #fff !important;
+        }
+        .dark-mode .modal-content {
+            background-color: #222 !important;
+            color: #fff !important;
+        }
+        .dark-mode .modal-header {
+            border-bottom: 1px solid #333 !important;
+        }
+        .dark-mode .modal-footer {
+            border-top: 1px solid #333 !important;
+        }
+        .dark-mode .fc-event-holiday {
+            background-color: #FFD600 !important;
+            color: #4E2600 !important;
+        }
+        .dark-mode .fc-event-conflict {
+            background-color: #E53935 !important;
+            color: #fff !important;
+        }
+        .dark-mode .fc-event-pending {
+            background-color: #1976D2 !important;
+            color: #fff !important;
+        }
+        .dark-mode .fc-event-approved {
+            background-color: #43A047 !important;
+            color: #fff !important;
+        }
+        .dark-mode .fc-event-rejected {
+            background-color: #757575 !important;
+            color: #fff !important;
+        }
+        .dark-mode .legend-color {
+            border: 1px solid #444 !important;
+        }
+        .dark-mode .text-muted {
+            color: #b0b0b0 !important;
+        }
+        .dark-mode .border,
+        .dark-mode .table,
+        .dark-mode .table th,
+        .dark-mode .table td {
+            border-color: #444 !important;
+        }
+        .dark-mode .dropdown-menu {
+            background-color: #222 !important;
+            color: #fff !important;
+        }
+        .dark-mode .dropdown-item {
+            color: #fff !important;
+        }
+        .dark-mode .dropdown-item:hover,
+        .dark-mode .dropdown-item:focus {
+            background-color: #333 !important;
+            color: #fff !important;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .navbar-nav .nav-link.active, .navbar-nav .nav-link:focus, .navbar-nav .nav-link:hover {
+            color: #0d6efd !important;
+            font-weight: 500;
+        }
+        .card {
+            border-radius: 1rem;
+        }
+        .card-header {
+            border-top-left-radius: 1rem !important;
+            border-top-right-radius: 1rem !important;
+        }
+        .footer {
+            background: #fff;
+            border-radius: 0.5rem 0.5rem 0 0;
+            box-shadow: 0 -1px 4px rgba(0,0,0,0.04);
+        }
+    </style>
+    <script>
+        // Dark mode toggle logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const html = document.documentElement;
+            const toggle = document.getElementById('darkModeToggle');
+            // Load preference
+            if (localStorage.getItem('darkMode') === 'on') {
+                html.classList.add('dark-mode');
+                if (toggle) toggle.checked = true;
+            }
+            if (toggle) {
+                toggle.addEventListener('change', function () {
+                    if (toggle.checked) {
+                        html.classList.add('dark-mode');
+                        localStorage.setItem('darkMode', 'on');
+                    } else {
+                        html.classList.remove('dark-mode');
+                        localStorage.setItem('darkMode', 'off');
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm mb-4">
+            <div class="container">
+                @{
+                    if (!User.Identity.IsAuthenticated)
+                    {
+                        <a class="navbar-brand" asp-page="/Index">Project</a>
+                    }
+                    else if (User.IsInRole("Admin"))
+                    {
+                        <a class="navbar-brand" asp-page="/Admin/Index">Project</a>
+                    }
+                    else if (User.IsInRole("Instructor"))
+                    {
+                       <a class="navbar-brand" asp-page="/Instructor/Index">Instructor Panel</a>
+                    }
+                }
+                <!-- Dark mode toggle switch -->
+                <div class="form-check form-switch ms-3">
+                    <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                    <label class="form-check-label" for="darkModeToggle" style="user-select:none;">Dark Mode</label>
+                </div>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Calendar">Calendar</a>
+                        </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-page="/Admin/Index">Admin Panel</a>
+                                </li>
+                            }
+                            if (User.IsInRole("Instructor"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-page="/Instructor/Index">Instructor Panel</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-page="/Instructor/Feedback">Send Feedback</a>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <form method="post" asp-page="/Logout" class="d-inline">
+                                    <button type="submit" class="nav-link btn btn-link text-dark px-0">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-page="/Login">Login</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container mb-5">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+   <br />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,50 @@
+@page
+@model Project.Pages.Admin.CreateClassroomModel
+@{
+    ViewData["Title"] = "Add Classroom";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Add Classroom</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="mb-3">
+                            <label asp-for="Classroom.Name" class="form-label"></label>
+                            <input asp-for="Classroom.Name" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Classroom.Building" class="form-label"></label>
+                            <input asp-for="Classroom.Building" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Classroom.Floor" class="form-label"></label>
+                            <input asp-for="Classroom.Floor" type="number" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Classroom.Capacity" class="form-label"></label>
+                            <input asp-for="Classroom.Capacity" type="number" class="form-control" />
+                        </div>
+                        <div class="form-check mb-2">
+                            <input asp-for="Classroom.HasProjector" type="checkbox" class="form-check-input" />
+                            <label asp-for="Classroom.HasProjector" class="form-check-label"></label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input asp-for="Classroom.HasComputers" type="checkbox" class="form-check-input" />
+                            <label asp-for="Classroom.HasComputers" class="form-check-label"></label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input asp-for="Classroom.IsActive" type="checkbox" class="form-check-input" />
+                            <label asp-for="Classroom.IsActive" class="form-check-label"></label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add Classroom</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

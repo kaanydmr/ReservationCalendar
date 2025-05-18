@@ -1,0 +1,146 @@
+@page
+@model Project.Pages.CreateReservationModel
+@{
+    ViewData["Title"] = "Create Reservation";
+    var holidaysJson = System.Text.Json.JsonSerializer.Serialize(
+        Model.Holidays.Select(h => new {
+            date = h.Date.ToString("yyyy-MM-dd"),
+            name = h.Name
+        })
+    );
+    // Add this block to define 'holiday' for the initial warning
+    var selectedDate = Model.Reservation.StartDate.ToString("yyyy-MM-dd");
+    var holiday = Model.Holidays.FirstOrDefault(h => h.Date.ToString("yyyy-MM-dd") == selectedDate);
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Reservation.Title" class="form-label"></label>
+        <input asp-for="Reservation.Title" class="form-control" required />
+        <span asp-validation-for="Reservation.Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Reservation.Description" class="form-label"></label>
+        <textarea asp-for="Reservation.Description" class="form-control"></textarea>
+        <span asp-validation-for="Reservation.Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Reservation.ClassroomId" class="form-label"></label>
+        <select asp-for="Reservation.ClassroomId" class="form-select" asp-items="Model.Classrooms" required>
+            <option value="">-- Select Classroom --</option>
+        </select>
+        <span asp-validation-for="Reservation.ClassroomId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Reservation.AcademicTermId" class="form-label"></label>
+        <select asp-for="Reservation.AcademicTermId" class="form-select" id="termSelect" required>
+            <option value="">-- Select Term --</option>
+            @foreach (var term in Model.AcademicTerms)
+            {
+                <option value="@term.Value">@term.Text</option>
+            }
+        </select>
+        <span asp-validation-for="Reservation.AcademicTermId" class="text-danger"></span>
+    </div>
+
+    @if (Model.CalculatedDayOfWeek != null)
+    {
+        <div class="mb-3">
+            <label class="form-label">Day of Week</label>
+            <input class="form-control" value="@Model.CalculatedDayOfWeek" readonly />
+            <input type="hidden" asp-for="HiddenDayOfWeek" value="@((int?)Model.CalculatedDayOfWeek ?? 0)" />
+        </div>
+    }
+    <div id="holidayWarning">
+        @* The server-side warning will show here on first load *@
+        @if (holiday != null)
+        {
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> The selected date (@holiday.Date.ToString("yyyy-MM-dd")) is a holiday: <b>@holiday.Name</b>
+            </div>
+        }
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Reservation.StartDate" class="form-label"></label>
+        <input asp-for="Reservation.StartDate" type="date" class="form-control" id="Reservation_StartDate" required value="@Model.Reservation.StartDate.ToString("yyyy-MM-dd")" />
+        <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Reservation.StartTime" class="form-label"></label>
+        <input asp-for="Reservation.StartTime" type="time" class="form-control" required />
+        <span asp-validation-for="Reservation.StartTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Reservation.EndTime" class="form-label"></label>
+        <input asp-for="Reservation.EndTime" type="time" class="form-control" required />
+        <span asp-validation-for="Reservation.EndTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Reservation.EndDate" class="form-label"></label>
+        <input asp-for="Reservation.EndDate" type="date" class="form-control" readonly />
+        <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Reservation</button>
+</form>
+
+
+
+<div>
+    <a asp-page="./Calendar" class="btn btn-secondary mt-3">Back to Calendar</a>
+</div>
+
+@section Scripts {
+    <script>
+        // Build a dictionary of termId -> endDate
+        var termEndDates = {
+            @foreach (var term in Model.AllTerms)
+            {
+                @: "@term.Id": "@term.EndDate.ToString("yyyy-MM-dd")",
+                // (the trailing comma is fine in JS objects)
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var termSelect = document.getElementById("termSelect");
+            var endDateInput = document.getElementById("Reservation_EndDate");
+
+            function updateEndDate() {
+                var selectedId = termSelect.value;
+                var endDate = termEndDates[selectedId];
+                if (endDateInput && endDate) {
+                    endDateInput.value = endDate;
+                } else if (endDateInput) {
+                    endDateInput.value = "";
+                }
+            }
+
+            termSelect.addEventListener("change", updateEndDate);
+            updateEndDate();
+        });
+
+        var holidays = @Html.Raw(holidaysJson);
+
+        document.getElementById('Reservation_StartDate')?.addEventListener('change', function() {
+            var selected = this.value;
+            var warningDiv = document.getElementById('holidayWarning');
+            var found = holidays.find(h => h.date === selected);
+            if (found) {
+                warningDiv.innerHTML = `<div class="alert alert-warning"><strong>Warning:</strong> The selected date (${found.date}) is a holiday: <b>${found.name}</b></div>`;
+            } else {
+                warningDiv.innerHTML = '';
+            }
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+}

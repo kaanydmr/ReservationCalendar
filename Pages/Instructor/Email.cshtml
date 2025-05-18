@@ -1,0 +1,41 @@
+@page
+@model Project.Pages.Instructor.EmailModel
+@{
+    ViewData["Title"] = "Contact Messages";
+}
+
+<h2>Contact Messages</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>Received</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var msg in Model.ContactMessages)
+    {
+        <tr class="@(msg.IsRead ? "" : "table-warning")">
+            <td>@msg.Subject</td>
+            <td>@msg.CreatedAt.ToString("g")</td>
+            <td>@(msg.IsRead ? "Read" : "Unread")</td>
+            <td>
+            <form method="post" asp-page-handler="MarkAsRead" asp-route-id="@msg.Id" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-primary">View</button>
+            </form>
+            </td>
+        </tr>
+        @if (msg.IsRead)
+        {
+            <tr>
+                <td colspan="5">
+                    <strong>Message:</strong> @msg.Message
+                </td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>

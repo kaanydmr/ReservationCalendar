@@ -1,0 +1,31 @@
+@page
+@model Project.Pages.Instructor.FeedbackModel
+@{
+    ViewData["Title"] = "Send Feedback";
+}
+<h2>Send Feedback</h2>
+<form method="post">
+    <div class="mb-3">
+        <label for="classroomSelect">Classroom</label>
+        <select asp-for="Feedback.ClassroomId" asp-items="Model.Classrooms" class="form-select"></select>
+    </div>
+    <div class="mb-3">
+        <label>Rating</label>
+        <select asp-for="Feedback.Rating" class="form-select">
+            <option value="1">★☆☆☆☆</option>
+            <option value="2">★★☆☆☆</option>
+            <option value="3">★★★☆☆</option>
+            <option value="4">★★★★☆</option>
+            <option value="5">★★★★★</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Comment</label>
+        <textarea asp-for="Feedback.Comment" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Feedback</button>
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-info mt-2">@Model.Message</div>
+    }
+</form>

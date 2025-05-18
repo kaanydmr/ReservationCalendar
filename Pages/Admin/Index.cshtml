@@ -1,0 +1,45 @@
+@page
+@model Project.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Admin Dashboard</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead">Welcome, admin!</p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <a asp-page="/Admin/CreateAdmin" class="text-decoration-none">Create New Admin</a>
+                </li>
+                <li class="list-group-item">
+                    <a asp-page="/Admin/CreateInstructor" class="text-decoration-none">Manege Instructors</a>
+                </li>
+                <li class="list-group-item">
+                    <a asp-page="/Admin/AcademicTerms" class="text-decoration-none">Manage Academic Terms</a>
+                </li>
+                <li class="list-group-item">
+                    <a asp-page="/Admin/CreateClassroom" class="text-decoration-none">Add Classroom</a>
+                </li>
+                <li class="list-group-item">
+                    <a asp-page="/Admin/ClassroomList" class="text-decoration-none">View Classrooms</a>
+                </li>
+                <li class="list-group-item">
+                    <a asp-page="/Admin/Email" class="text-decoration-none">View Mails</a>
+                </li>
+                <li class="list-group-item">
+                    <form method="post" asp-page="/Logout" class="d-inline">
+                        <button type="submit" class="btn btn-link text-danger p-0 text-decoration-none">Logout</button>
+                    </form>
+                </li>
+            </ul>
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success mt-3">@TempData["Message"]</div>
+            }
+        </div>
+    </div>
+</div>

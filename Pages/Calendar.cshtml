@@ -1,0 +1,615 @@
+@page
+@model Project.Pages.CalendarModel
+@{
+    ViewData["Title"] = "Reservation Calendar";
+    var holidaysJson = System.Text.Json.JsonSerializer.Serialize(
+        Model.Holidays.Select(h => new {
+            id = $"holiday-{h.Id}",
+            title = h.Name,
+            start = h.Date.ToString("yyyy-MM-dd"),
+            end = h.Date.ToString("yyyy-MM-dd"),
+            allDay = true,
+            classNames = new[] { "fc-event-holiday" },
+            extendedProps = new {
+                isHoliday = true,
+                holidayName = h.Name,
+                holidayDate = h.Date.ToString("yyyy-MM-dd")
+            }
+        })
+    );
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.5/main.min.css">
+    <style>
+        .fc-event-holiday {
+            background-color: #FFD600 !important;   /* Bright yellow */
+            border-color: #FFAB00 !important;
+            color: #4E2600 !important;
+            font-weight: bold;
+        }
+        .fc-event-conflict {
+            background-color: #E53935 !important;   /* Solid red */
+            border-color: #B71C1C !important;
+            color: #fff !important;
+            font-weight: bold;
+        }
+        .fc-event-pending {
+            background-color: #1976D2 !important;   /* Solid blue */
+            border-color: #0D47A1 !important;
+            color: #fff !important;
+            font-weight: bold;
+        }
+        .fc-event-approved {
+            background-color: #43A047 !important;   /* Solid green */
+            border-color: #1B5E20 !important;
+            color: #fff !important;
+            font-weight: bold;
+        }
+        .fc-event-rejected {
+            background-color: #757575 !important;   /* Solid gray */
+            border-color: #424242 !important;
+            color: #fff !important;
+            text-decoration: line-through;
+            font-weight: bold;
+        }
+
+        #calendar {
+            margin-top: 20px;
+        }
+
+        .calendar-container {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+
+        .filters {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-section {
+            margin-right: 20px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+
+        .fc-timegrid-slot {
+            height: 60px !important; /* Adjust as needed */
+        }
+    </style>
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+    
+
+    
+    
+    <div class="calendar-container">
+        <div class="filters">
+            <div class="filter-section">
+                <label for="academicTermSelect">Academic Term:</label>
+                <select id="academicTermSelect" class="form-select" asp-items="Model.AcademicTerms">
+                    <option value="">-- All Terms --</option>
+                </select>
+            </div>
+            
+            @if(User.IsInRole("Admin")) {
+                <div class="filter-section">
+                    <label for="instructorSelect">Instructor:</label>
+                    <select id="instructorSelect" class="form-select" asp-items="Model.Instructors">
+                        <option value="">-- All Instructors --</option>
+                    </select>
+                </div>
+            }
+            
+            <div class="filter-section">
+                <label for="classroomSelect">Classroom:</label>
+                <select id="classroomSelect" class="form-select" asp-items="Model.Classrooms">
+                    <option value="">-- All Classrooms --</option>
+                </select>
+            </div>
+            
+            @if(User.IsInRole("Admin")) {
+                <div class="filter-section">
+                    <label for="statusSelect">Status:</label>
+                    <select id="statusSelect" class="form-select">
+                        <option value="">-- All Statuses --</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+            }
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color fc-event-pending"></div>
+                <span>Pending</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color fc-event-approved"></div>
+                <span>Approved</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color fc-event-rejected"></div>
+                <span>Rejected</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color fc-event-conflict"></div>
+                <span>Conflict</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color fc-event-holiday"></div>
+                <span>Holiday</span>
+            </div>
+        </div>
+        
+        <div id="calendar"></div>
+    </div>
+</div>
+
+
+<input type="hidden" asp-for="HiddenDayOfWeek" />
+
+<!-- Reservation Details Modal -->
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reservationModalLabel">Reservation Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="reservationModalBody">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="mb-3">
+                    <strong>Title:</strong> <span id="reservationTitle"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Description:</strong> <span id="reservationDescription"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Classroom:</strong> <span id="reservationClassroom"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Instructor:</strong> <span id="reservationInstructor"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Schedule:</strong> <span id="reservationSchedule"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Time:</strong> <span id="reservationTime"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Status:</strong> <span id="reservationStatus"></span>
+                </div>
+                <div class="mb-3" id="reservationRejectionReasonContainer" style="display: none;">
+                    <strong>Rejection Reason:</strong> <span id="reservationRejectionReason"></span>
+                </div>
+                <div class="mb-3" id="reservationConflictContainer" style="display: none;">
+                    <div class="alert alert-danger">
+                        <strong>Warning:</strong> This reservation conflicts with other reservation(s).
+                    </div>
+                </div>
+                <div class="mb-3" id="reservationHolidayContainer" style="display: none;">
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> This reservation falls on a holiday: 
+                        <span id="holidayName"></span>
+                        (<span id="holidayDate"></span>)
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                @if(User.IsInRole("Admin")) {
+                    <div id="adminActionsContainer">
+                        <button type="button" class="btn btn-success" id="approveReservationBtn">Approve</button>
+                        <button type="button" class="btn btn-danger" id="rejectReservationBtn">Reject</button>
+                        <button type="button" class="btn btn-danger" id="cancelReservationBtn">Remove</button>
+                    </div>
+                }
+                @if(User.IsInRole("Instructor")) {
+                    <div id="instructorActionsContainer">
+                        <a href="#" class="btn btn-primary" id="editReservationBtn">Edit</a>
+                        <button type="button" class="btn btn-danger" id="cancelReservationBtn">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="removeReservationBtn" style="display:none;">Remove Reservation</button>
+                    </div>
+                }
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Reason Modal -->
+<div class="modal fade" id="rejectionReasonModal" tabindex="-1" aria-labelledby="rejectionReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectionReasonModalLabel">Provide Rejection Reason</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="rejectionReason" class="form-label">Rejection Reason:</label>
+                    <textarea id="rejectionReason" class="form-control" rows="3" required></textarea>
+                </div>
+                <input type="hidden" id="rejectionReservationId" value="" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.5/main.min.js"></script>
+    <script>
+        var holidays = @Html.Raw(holidaysJson);
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var selectedReservationId = null;
+            
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                allDaySlot: true,
+                slotMinTime: '07:00:00',
+                slotMaxTime: '18:00:00',
+                slotDuration: '01:00:00',
+                slotLabelInterval: '01:00',
+                snapDuration: '01:00:00',
+                weekends: true,
+                height: 'auto',
+                selectable: @(User.IsInRole("Instructor") ? "true" : "false"),
+                selectMirror: true,
+                eventTimeFormat: { // 24-hour format
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                slotLabelFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                select: function(info) {
+                    // For instructors, redirect to reservation creation page with pre-filled dates
+                    if (@(User.IsInRole("Instructor") ? "true" : "false")) {
+                        var startDate = info.startStr.split('T')[0];
+                        var startTime = info.startStr.split('T')[1].substring(0, 5);
+                        var endTime = info.endStr.split('T')[1].substring(0, 5);
+                        
+                        window.location.href = '/CreateReservation?startDate=' + startDate + 
+                                              '&startTime=' + startTime + 
+                                              '&endTime=' + endTime;
+                    }
+                    calendar.unselect();
+                },
+                eventClick: function(info) {
+                    selectedReservationId = info.event.id;
+
+                    // Log current user details for debugging
+                    console.log('CurrentUserId:', '@Model.CurrentUserId');
+                    console.log('CurrentUserName:', '@Model.CurrentUserName');
+
+                    // Populate modal with event data
+                    document.getElementById('reservationTitle').textContent = info.event.title;
+                    document.getElementById('reservationDescription').textContent = info.event.extendedProps.description || 'N/A';
+                    document.getElementById('reservationClassroom').textContent = info.event.extendedProps.classroom;
+                    document.getElementById('reservationInstructor').textContent = info.event.extendedProps.instructor;
+                    document.getElementById('reservationSchedule').textContent = info.event.extendedProps.dayOfWeek + 's, ' + 
+                                                                             info.event.extendedProps.startDate + ' to ' + 
+                                                                             info.event.extendedProps.endDate;
+                    document.getElementById('reservationTime').textContent = info.event.extendedProps.startTime + ' - ' + 
+                                                                         info.event.extendedProps.endTime;
+                    document.getElementById('reservationStatus').textContent = info.event.extendedProps.status;
+                    
+                    // Handle rejection reason
+                    if (info.event.extendedProps.status === 'Rejected' && info.event.extendedProps.rejectionReason) {
+                        document.getElementById('reservationRejectionReason').textContent = info.event.extendedProps.rejectionReason;
+                        document.getElementById('reservationRejectionReasonContainer').style.display = 'block';
+                    } else {
+                        document.getElementById('reservationRejectionReasonContainer').style.display = 'none';
+                    }
+                    
+                    // Handle conflict warning
+                    if (info.event.extendedProps.hasConflict) {
+                        document.getElementById('reservationConflictContainer').style.display = 'block';
+                    } else {
+                        document.getElementById('reservationConflictContainer').style.display = 'none';
+                    }
+                    
+                    // Handle holiday warning
+                    document.getElementById('reservationHolidayContainer').style.display = 'none';
+
+                    // Show for pure holiday events
+                    if (info.event.extendedProps.isHoliday) {
+                        document.getElementById('holidayName').textContent = info.event.extendedProps.holidayName;
+                        document.getElementById('holidayDate').textContent = info.event.extendedProps.holidayDate || info.event.startStr.split('T')[0];
+                        document.getElementById('reservationHolidayContainer').style.display = 'block';
+                    } else {
+                        // Check for reservations that overlap with a holiday
+                        const startDate = info.event.extendedProps.startDate;
+                        const endDate = info.event.extendedProps.endDate;
+                        let dayOfWeek = info.event.extendedProps.dayOfWeek;
+                        if (typeof dayOfWeek === "string") {
+                            dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(dayOfWeek);
+                        }
+
+                        const matchingHoliday = holidays.find(h => {
+                            const hDate = h.date;
+                            if (hDate >= startDate && hDate <= endDate) {
+                                const holidayDayOfWeek = new Date(hDate).getDay();
+                                return holidayDayOfWeek === dayOfWeek;
+                            }
+                            return false;
+                        });
+
+                        if (matchingHoliday) {
+                            document.getElementById('holidayName').textContent = matchingHoliday.name;
+                            document.getElementById('holidayDate').textContent = matchingHoliday.date;
+                            document.getElementById('reservationHolidayContainer').style.display = 'block';
+                        }
+                    }
+                    
+                    // Show/hide admin actions based on status
+                    if (document.getElementById('adminActionsContainer')) {
+                        if (info.event.extendedProps.status === 'Pending') {
+                            document.getElementById('adminActionsContainer').style.display = 'block';
+                        } else {
+                            document.getElementById('adminActionsContainer').style.display = 'none';
+                        }
+                    }
+                    
+                    // Show/hide instructor actions based on status and ownership
+                    if (document.getElementById('instructorActionsContainer')) {
+                        const isOwnReservation = info.event.extendedProps.instructorId === @Model.CurrentUserId;
+                        const isEditable = ['Pending', 'Approved'].includes(info.event.extendedProps.status);
+
+                        // Remove any previous conflict button
+                        document.getElementById('requestConflictBtn')?.remove();
+
+                        if (isOwnReservation && isEditable) {
+                            document.getElementById('instructorActionsContainer').style.display = 'block';
+                            document.getElementById('editReservationBtn').href = '/EditReservation/' + selectedReservationId;
+                            document.getElementById('editReservationBtn').style.display = '';
+                            document.getElementById('cancelReservationBtn').style.display = '';
+                        } else {
+                            document.getElementById('instructorActionsContainer').style.display = 'block';
+                            document.getElementById('editReservationBtn').style.display = 'none';
+                            document.getElementById('cancelReservationBtn').style.display = 'none';
+
+                            // Add "Request Conflicting Reservation" button
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'btn btn-warning';
+                            btn.id = 'requestConflictBtn';
+                            btn.textContent = 'Request Conflicting Reservation';
+                            btn.onclick = function() {
+                                // Use the clicked reservation's date/time for pre-fill
+                                const startDate = info.event.startStr.split('T')[0];
+                                const startTime = info.event.startStr.split('T')[1].substring(0, 5);
+                                const endTime = info.event.endStr.split('T')[1].substring(0, 5);
+                                window.location.href = `/CreateReservation?startDate=${startDate}&startTime=${startTime}&endTime=${endTime}`;
+                            };
+                            document.getElementById('instructorActionsContainer').appendChild(btn);
+                        }
+                    }
+                    
+                    // Show modal
+                    new bootstrap.Modal(document.getElementById('reservationModal')).show();
+                },
+                events: function(info, successCallback, failureCallback) {
+                    // Get filter values
+                    const academicTermId = document.getElementById('academicTermSelect').value;
+                    const classroomId = document.getElementById('classroomSelect').value;
+                    const status = document.getElementById('statusSelect')?.value || '';
+                    const instructorId = document.getElementById('instructorSelect')?.value || '';
+
+                    fetch('/api/reservations?' + new URLSearchParams({
+                        start: info.startStr,
+                        end: info.endStr,
+                        academicTermId: academicTermId,
+                        classroomId: classroomId,
+                        status: status,
+                        instructorId: instructorId
+                    }))
+                    .then(response => response.json())
+                    .then(data => {
+                        // Transform reservations as before
+                        const events = data.map(reservation => {
+                            let eventClassName = 'fc-event-' + reservation.status.toLowerCase();
+                            if (reservation.hasConflict && reservation.status !== "Rejected") {
+                                eventClassName = 'fc-event-conflict';
+                            }
+                            if (reservation.isHoliday) {
+                                eventClassName += ' fc-event-holiday';
+                            }
+                            return {
+                                id: reservation.id,
+                                title: reservation.title,
+                                start: reservation.start,
+                                end: reservation.end,
+                                classNames: [eventClassName],
+                                extendedProps: {
+                                    description: reservation.description,
+                                    classroom: reservation.classroom,
+                                    instructor: reservation.instructor,
+                                    instructorId: reservation.instructorId,
+                                    dayOfWeek: reservation.dayOfWeek,
+                                    startDate: reservation.startDate,
+                                    endDate: reservation.endDate,
+                                    startTime: reservation.startTime,
+                                    endTime: reservation.endTime,
+                                    status: reservation.status,
+                                    rejectionReason: reservation.rejectionReason,
+                                    hasConflict: reservation.hasConflict,
+                                    isHoliday: reservation.isHoliday,
+                                    holidayName: reservation.holidayName,
+                                    holidayDate: reservation.holidayDate
+                                }
+                            };
+                        });
+
+                        // Merge holidays (from Razor) with reservations
+                        successCallback([...events, ...holidays]);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching events:', error);
+                        failureCallback(error);
+                    });
+                }
+            });
+            
+            calendar.render();
+            
+            // Handle approve button click
+            document.getElementById('approveReservationBtn')?.addEventListener('click', function() {
+                if (selectedReservationId) {
+                    fetch('/api/reservations/' + selectedReservationId + '/approve', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Close modal and refresh calendar
+                            bootstrap.Modal.getInstance(document.getElementById('reservationModal')).hide();
+                            calendar.refetchEvents();
+                        } else {
+                            return response.json().then(data => {
+                                alert('Error: ' + (data.message || 'Failed to approve reservation'));
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error approving reservation:', error);
+                        alert('An error occurred while approving the reservation');
+                    });
+                }
+            });
+            
+            // Handle reject button click
+            document.getElementById('rejectReservationBtn')?.addEventListener('click', function() {
+                // Open rejection reason modal
+                document.getElementById('rejectionReservationId').value = selectedReservationId;
+                bootstrap.Modal.getInstance(document.getElementById('reservationModal')).hide();
+                new bootstrap.Modal(document.getElementById('rejectionReasonModal')).show();
+            });
+            
+            // Handle confirm reject button click
+            document.getElementById('confirmRejectBtn')?.addEventListener('click', function() {
+                const reservationId = document.getElementById('rejectionReservationId').value;
+                const rejectionReason = document.getElementById('rejectionReason').value;
+                
+                if (!rejectionReason.trim()) {
+                    alert('Please provide a rejection reason');
+                    return;
+                }
+                
+                fetch('/api/reservations/' + reservationId + '/reject', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ rejectionReason: rejectionReason })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Close modal and refresh calendar
+                        bootstrap.Modal.getInstance(document.getElementById('rejectionReasonModal')).hide();
+                        calendar.refetchEvents();
+                    } else {
+                        return response.json().then(data => {
+                            alert('Error: ' + (data.message || 'Failed to reject reservation'));
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error rejecting reservation:', error);
+                    alert('An error occurred while rejecting the reservation');
+                });
+            });
+            
+            // Handle cancel reservation button click
+            document.getElementById('cancelReservationBtn')?.addEventListener('click', function() {
+                if (selectedReservationId) {
+                    if (confirm('Are you sure you want to cancel this reservation?')) {
+                        fetch('/api/reservations/' + selectedReservationId + '/cancel', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            }
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Close modal and refresh calendar
+                                bootstrap.Modal.getInstance(document.getElementById('reservationModal')).hide();
+                                calendar.refetchEvents();
+                            } else {
+                                return response.json().then(data => {
+                                    alert('Error: ' + (data.message || 'Failed to cancel reservation'));
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error canceling reservation:', error);
+                            alert('An error occurred while canceling the reservation');
+                        });
+                    }
+                }
+            });
+            
+            // Handle filter changes
+            const filterElements = [
+                document.getElementById('academicTermSelect'),
+                document.getElementById('classroomSelect'),
+                document.getElementById('instructorSelect'),
+                document.getElementById('statusSelect')
+            ].filter(Boolean);
+            
+            filterElements.forEach(element => {
+                element.addEventListener('change', function() {
+                    calendar.refetchEvents();
+                });
+            });
+        });
+    </script>
+}

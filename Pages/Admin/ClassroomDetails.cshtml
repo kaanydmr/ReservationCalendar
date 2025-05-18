@@ -1,0 +1,42 @@
+@page "{id:int}"
+@model Project.Pages.Admin.ClassroomDetailsModel
+@{
+    ViewData["Title"] = "Classroom Details";
+}
+
+<h2>@Model.Classroom.Name</h2>
+<p><b>Building:</b> @Model.Classroom.Building</p>
+<p><b>Average Rating:</b>
+    @if (Model.Feedbacks.Any())
+    {
+        <span>
+            @($"{Model.AverageRating:0.0} / 5")
+            @string.Concat(Enumerable.Repeat("★", (int)Model.AverageRating))
+            @string.Concat(Enumerable.Repeat("☆", 5 - (int)Model.AverageRating))
+        </span>
+    }
+    else
+    {
+        <span>No ratings</span>
+    }
+</p>
+
+<h3>Feedback</h3>
+@if (Model.Feedbacks.Any())
+{
+    <ul>
+    @foreach (var fb in Model.Feedbacks)
+    {
+        <li>
+            <b>@fb.Instructor.FirstName @fb.Instructor.LastName</b>:
+            <span>@string.Concat(Enumerable.Repeat("★", fb.Rating))@string.Concat(Enumerable.Repeat("☆", 5-fb.Rating))</span>
+            <br />
+            <i>@fb.Comment</i>
+        </li>
+    }
+    </ul>
+}
+else
+{
+    <p>No feedback yet.</p>
+}

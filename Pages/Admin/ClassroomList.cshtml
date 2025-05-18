@@ -1,0 +1,46 @@
+@page
+@model Project.Pages.Admin.ClassroomListModel
+@{
+    ViewData["Title"] = "Classroom List";
+}
+
+<h2>Classroom List</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Building</th>
+            <th>Average Rating</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Model.Classrooms)
+    {
+        <tr>
+            <td>@c.Name</td>
+            <td>@c.Building</td>
+            <td>
+                @if (c.ClassroomFeedbacks.Any())
+                {
+                    <span>
+                        @($"{c.ClassroomFeedbacks.Average(f => f.Rating):0.0} / 5")
+                        @string.Concat(Enumerable.Repeat("★", (int)c.ClassroomFeedbacks.Average(f => f.Rating)))
+                        @string.Concat(Enumerable.Repeat("☆", 5 - (int)c.ClassroomFeedbacks.Average(f => f.Rating)))
+                    </span>
+                }
+                else
+                {
+                    <span>No ratings</span>
+                }
+            </td>
+            <td>
+                <div class="btn-group" role="group">
+                    <a class="btn btn-sm btn-outline-primary" asp-page="ClassroomDetails" asp-route-id="@c.Id">Details</a>
+                    <a class="btn btn-sm btn-outline-secondary" asp-page="/Calendar" asp-route-classroomId="@c.Id">View Calendar</a>
+                </div>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
