@@ -3,71 +3,27 @@
 
 <h2>Edit Reservation</h2>
 
-@if (Model.AcademicTerms == null) { <div style="color:red">AcademicTerms is null!</div> }
-@if (Model.Classrooms == null) { <div style="color:red">Classrooms is null!</div> }
-@if (Model.Instructors == null) { <div style="color:red">Instructors is null!</div> }
-
-@Model.Reservation.AcademicTermId
-@Model.Reservation.ClassroomId
-@Model.Reservation.InstructorId
-
-<form method="post">
-    <input type="hidden" asp-for="Reservation.Id" />
-
-    <div asp-validation-summary="All"></div>
-
-    <div class="mb-3">
-        <label asp-for="Reservation.Title"></label>
-        <input asp-for="Reservation.Title" class="form-control" />
+@if (Model.Reservation.Status == "Approved")
+{
+    <div class="alert alert-warning">
+        Approved reservations cannot be edited.
     </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.Description"></label>
-        <textarea asp-for="Reservation.Description" class="form-control"></textarea>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.AcademicTermId"></label>
-        <select asp-for="Reservation.AcademicTermId" asp-items="Model.AcademicTerms" class="form-select"></select>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.ClassroomId"></label>
-        <select asp-for="Reservation.ClassroomId" asp-items="Model.Classrooms" class="form-select"></select>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.InstructorId"></label>
-        <select asp-for="Reservation.InstructorId" asp-items="Model.Instructors" class="form-select"></select>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.DayOfWeek"></label>
-        <input asp-for="Reservation.DayOfWeek" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.StartTime"></label>
-        <input asp-for="Reservation.StartTime" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.EndTime"></label>
-        <input asp-for="Reservation.EndTime" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.StartDate"></label>
-        <input asp-for="Reservation.StartDate" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.EndDate"></label>
-        <input asp-for="Reservation.EndDate" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.Status"></label>
-        <input asp-for="Reservation.Status" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.RejectionReason"></label>
-        <input asp-for="Reservation.RejectionReason" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Reservation.IsHoliday"></label>
-        <input asp-for="Reservation.IsHoliday" class="form-check-input" type="checkbox" />
-    </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-page="/Calendar" class="btn btn-secondary">Cancel</a>
-</form>
+    <a asp-page="/Calendar" class="btn btn-secondary">Back to Calendar</a>
+}
+else
+{
+    <form method="post">
+        <input type="hidden" asp-for="Reservation.Id" />
+        <div asp-validation-summary="All"></div>
+        <div class="mb-3">
+            <label asp-for="Reservation.Title"></label>
+            <input asp-for="Reservation.Title" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="Reservation.Description"></label>
+            <textarea asp-for="Reservation.Description" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-page="/Calendar" class="btn btn-secondary">Cancel</a>
+    </form>
+}

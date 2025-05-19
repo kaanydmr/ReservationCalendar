@@ -3,32 +3,27 @@
 @{
     ViewData["Title"] = "Instructor Dashboard";
 }
-
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-7 col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Welcome, Instructor!</h2>
-                </div>
-                <div class="card-body">
-                    <p class="lead">This is the instructor dashboard.</p>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <a asp-page="/Calendar" class="text-decoration-none">View Reservation Calendar/ Make Reservations</a>
-                        </li>
-                        <li class="list-group-item">
-                            <a asp-page="/Instructor/Email" class="text-decoration-none">Mails</a>
-                        </li>
-                        <li class="list-group-item">
-                            <a asp-page="/Instructor/Feedback" class="text-decoration-none">Send Feedback</a>
-                        <li class="list-group-item">
-                            <form method="post" asp-page="/Logout" class="d-inline">
-                                <button type="submit" class="btn btn-link text-danger p-0 text-decoration-none">Logout</button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Instructor Dashboard</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead">Welcome, instructor!</p>
+            
+            <div class="mb-3">
+                <a asp-page="/Calendar" class="btn btn-outline-primary w-100 text-start">View Reservation Calendar/ Make Reservations</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Instructor/Email" class="btn btn-outline-primary w-100 text-start">Mails</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Instructor/Feedback" class="btn btn-outline-primary w-100 text-start">Send Feedback</a>
+            </div>
+            <div class="mb-3">
+                <form method="post" asp-page="/Logout" class="d-inline w-100">
+                    <button type="submit" class="btn btn-outline-danger w-100 text-start">Logout</button>
+                </form>
             </div>
         </div>
     </div>

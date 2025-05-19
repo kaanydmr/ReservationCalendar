@@ -11,31 +11,35 @@
         </div>
         <div class="card-body">
             <p class="lead">Welcome, admin!</p>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item">
-                    <a asp-page="/Admin/CreateAdmin" class="text-decoration-none">Create New Admin</a>
-                </li>
-                <li class="list-group-item">
-                    <a asp-page="/Admin/CreateInstructor" class="text-decoration-none">Manege Instructors</a>
-                </li>
-                <li class="list-group-item">
-                    <a asp-page="/Admin/AcademicTerms" class="text-decoration-none">Manage Academic Terms</a>
-                </li>
-                <li class="list-group-item">
-                    <a asp-page="/Admin/CreateClassroom" class="text-decoration-none">Add Classroom</a>
-                </li>
-                <li class="list-group-item">
-                    <a asp-page="/Admin/ClassroomList" class="text-decoration-none">View Classrooms</a>
-                </li>
-                <li class="list-group-item">
-                    <a asp-page="/Admin/Email" class="text-decoration-none">View Mails</a>
-                </li>
-                <li class="list-group-item">
-                    <form method="post" asp-page="/Logout" class="d-inline">
-                        <button type="submit" class="btn btn-link text-danger p-0 text-decoration-none">Logout</button>
-                    </form>
-                </li>
-            </ul>
+
+
+            <div class="mb-3">
+                <a asp-page="/Calendar" class="btn btn-outline-primary w-100 text-start">View Reservation Calendar</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Admin/CreateInstructor" class="btn btn-outline-primary w-100 text-start">Manage Instructors</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Admin/AcademicTerms" class="btn btn-outline-primary w-100 text-start">Manage Academic Terms</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Admin/CreateClassroom" class="btn btn-outline-primary w-100 text-start">Add Classroom</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Admin/ClassroomList" class="btn btn-outline-primary w-100 text-start">View Classrooms</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Admin/Email" class="btn btn-outline-primary w-100 text-start">View Mails</a>
+            </div>
+            <div class="mb-3">
+                <a asp-page="/Admin/Logs" class="btn btn-outline-primary w-100 text-start">View System Logs</a>
+            </div>
+            <div class="mb-3">
+                <form method="post" asp-page="/Logout" class="d-inline w-100">
+                    <button type="submit" class="btn btn-outline-danger w-100 text-start">Logout</button>
+                </form>
+            </div>
+            
             @if (TempData["Message"] != null)
             {
                 <div class="alert alert-success mt-3">@TempData["Message"]</div>

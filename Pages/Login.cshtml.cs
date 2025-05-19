@@ -8,6 +8,13 @@ using Project.Data;
 using Project.Models; 
 using Project.Pages;
 
+/* Promts:
+1. Index and Calendar UI Logic
+Show warning for guests: Asked how to display a warning when a guest (not logged in) clicks "View Calendar".
+Button sizing: Wanted the "Login" and "View Calendar" buttons to be the same size.
+Remove/hide filters: Asked to remove or hide the search/filter dropdowns from the top of the calendar.
+*/
+
 namespace Project.Pages
 {
     public class LoginModel : PageModel
@@ -27,7 +34,7 @@ namespace Project.Pages
 
         public string ErrorMessage { get; set; }
 
-        public void OnGet() {}
+        public void OnGet() { }
 
         public async Task<IActionResult> OnPostAsync()
         {

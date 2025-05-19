@@ -5,16 +5,8 @@
     var holidaysJson = System.Text.Json.JsonSerializer.Serialize(
         Model.Holidays.Select(h => new {
             id = $"holiday-{h.Id}",
-            title = h.Name,
-            start = h.Date.ToString("yyyy-MM-dd"),
-            end = h.Date.ToString("yyyy-MM-dd"),
-            allDay = true,
-            classNames = new[] { "fc-event-holiday" },
-            extendedProps = new {
-                isHoliday = true,
-                holidayName = h.Name,
-                holidayDate = h.Date.ToString("yyyy-MM-dd")
-            }
+            date = h.Date.ToString("yyyy-MM-dd"),
+            name = h.Name
         })
     );
 }
@@ -285,7 +277,7 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                allDaySlot: true,
+                allDaySlot: false,
                 slotMinTime: '07:00:00',
                 slotMaxTime: '18:00:00',
                 slotDuration: '01:00:00',
@@ -321,10 +313,6 @@
                 eventClick: function(info) {
                     selectedReservationId = info.event.id;
 
-                    // Log current user details for debugging
-                    console.log('CurrentUserId:', '@Model.CurrentUserId');
-                    console.log('CurrentUserName:', '@Model.CurrentUserName');
-
                     // Populate modal with event data
                     document.getElementById('reservationTitle').textContent = info.event.title;
                     document.getElementById('reservationDescription').textContent = info.event.extendedProps.description || 'N/A';
@@ -355,33 +343,35 @@
                     // Handle holiday warning
                     document.getElementById('reservationHolidayContainer').style.display = 'none';
 
+                    const eventStartDate = info.event.extendedProps.startDate;
+                    const eventEndDate = info.event.extendedProps.endDate;
+                    const eventDayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(info.event.extendedProps.dayOfWeek);
+
+                    const overlappingHoliday = holidays.find(h => {
+                        // Check if holiday date is within reservation's date range and matches the reservation's day of week
+                        return h.date >= eventStartDate && h.date <= eventEndDate &&
+                            (new Date(h.date).getDay() === eventDayOfWeek);
+                    });
+
                     // Show for pure holiday events
                     if (info.event.extendedProps.isHoliday) {
                         document.getElementById('holidayName').textContent = info.event.extendedProps.holidayName;
                         document.getElementById('holidayDate').textContent = info.event.extendedProps.holidayDate || info.event.startStr.split('T')[0];
                         document.getElementById('reservationHolidayContainer').style.display = 'block';
                     } else {
-                        // Check for reservations that overlap with a holiday
-                        const startDate = info.event.extendedProps.startDate;
-                        const endDate = info.event.extendedProps.endDate;
-                        let dayOfWeek = info.event.extendedProps.dayOfWeek;
-                        if (typeof dayOfWeek === "string") {
-                            dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(dayOfWeek);
-                        }
+                        // Show holiday warning for reservations that overlap a holiday
+                        const eventStart = info.event.startStr.split('T')[0];
+                        const eventEnd = (info.event.endStr ? info.event.endStr.split('T')[0] : eventStart);
 
-                        const matchingHoliday = holidays.find(h => {
-                            const hDate = h.date;
-                            if (hDate >= startDate && hDate <= endDate) {
-                                const holidayDayOfWeek = new Date(hDate).getDay();
-                                return holidayDayOfWeek === dayOfWeek;
-                            }
-                            return false;
-                        });
-
-                        if (matchingHoliday) {
-                            document.getElementById('holidayName').textContent = matchingHoliday.name;
-                            document.getElementById('holidayDate').textContent = matchingHoliday.date;
+                        const overlappingHoliday = holidays.find(h =>
+                            h.date >= eventStart && h.date <= eventEnd
+                        );
+                        if (overlappingHoliday) {
+                            document.getElementById('holidayName').textContent = overlappingHoliday.name;
+                            document.getElementById('holidayDate').textContent = overlappingHoliday.date;
                             document.getElementById('reservationHolidayContainer').style.display = 'block';
+                        } else {
+                            document.getElementById('reservationHolidayContainer').style.display = 'none';
                         }
                     }
                     
@@ -397,7 +387,8 @@
                     // Show/hide instructor actions based on status and ownership
                     if (document.getElementById('instructorActionsContainer')) {
                         const isOwnReservation = info.event.extendedProps.instructorId === @Model.CurrentUserId;
-                        const isEditable = ['Pending', 'Approved'].includes(info.event.extendedProps.status);
+                        // Allow editing only if status is 'Pending'
+                        const isEditable = (info.event.extendedProps.status === 'Pending');
 
                         // Remove any previous conflict button
                         document.getElementById('requestConflictBtn')?.remove();
@@ -419,7 +410,7 @@
                             btn.id = 'requestConflictBtn';
                             btn.textContent = 'Request Conflicting Reservation';
                             btn.onclick = function() {
-                                // Use the clicked reservation's date/time for pre-fill
+                                // Pre-fill the reservation creation form using current event's date/time
                                 const startDate = info.event.startStr.split('T')[0];
                                 const startTime = info.event.startStr.split('T')[1].substring(0, 5);
                                 const endTime = info.event.endStr.split('T')[1].substring(0, 5);

@@ -1,0 +1,43 @@
+@page
+@model Project.Pages.Admin.LogsModel
+@{
+    ViewData["Title"] = "System Logs";
+}
+
+<div class="container mt-5">
+    <h2>System Logs</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Action Type</th>
+                <th>Description</th>
+                <th>IP Address</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var log in Model.Logs)
+        {
+            <tr>
+                <td>@log.Timestamp.ToString("g")</td>
+                <td>@(log.User != null ? log.User.Email : "System")</td>
+                <td>@log.ActionType</td>
+                <td>@log.Description</td>
+                <td>@log.IpAddress</td>
+                <td>
+                    @if (log.IsError)
+                    {
+                        <span class="badge bg-danger">Yes</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">No</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -11,6 +11,51 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
+
+/* Promts:
+1. Index and Calendar UI Logic
+Asked how to show a warning when "View Calendar" is clicked by a guest.
+Wanted the "Login" and "View Calendar" buttons to be the same size.
+Asked to remove or hide the search/filter dropdowns from the top of the calendar.
+2. Calendar Filtering and API
+Reported that calendar filters are not working.
+Requested a fix so that filters use database queries (WHERE) and refresh the calendar.
+Shared your ReservationsApiController code and discussed how to apply filters in the controller.
+Encountered and fixed a DateOnly vs DateTime comparison error.
+Noted that after applying filters, no events appeared on the calendar.
+Discussed the event expansion logic and the impact of the DayOfWeek check.
+Confirmed that using .ToListAsync() directly works, but using .AsQueryable() with filters did not seem to work as expected.
+Determined that the issue was likely with how input parameters were handled or sent from the frontend.
+3. Calendar Filtering and API
+Filters not working: Reported that calendar filters were not functioning as expected.
+Database filtering: Requested a fix so that filters use database queries (WHERE clauses) and refresh the calendar.
+Shared API code: Shared your ReservationsApiController code and discussed how to apply filters in the controller.
+DateOnly vs DateTime: Encountered and fixed a comparison error between DateOnly and DateTime.
+No events after filtering: Noted that after applying filters, no events appeared on the calendar.
+Event expansion logic: Discussed the event expansion logic and the impact of the DayOfWeek check.
+.ToListAsync() vs .AsQueryable(): Confirmed that using .ToListAsync() directly worked, but using .AsQueryable() with filters did not.
+Frontend parameter handling: Determined the issue was likely with how input parameters were handled or sent from the frontend.
+Calendar Holiday Warning:
+
+You asked how to make the holiday warning appear on every reservation that overlaps a holiday, not just on the exact holiday date.
+Guest Calendar Access Warning:
+
+You asked how to show a warning when a guest (not logged in) clicks "View Calendar".
+Button Sizing:
+
+You wanted the "Login" and "View Calendar" buttons to be the same size.
+Calendar Filters:
+
+You asked how to remove or hide the search/filter dropdowns from the top of the calendar.
+You reported that calendar filters were not working and requested a fix so that filters use database queries (WHERE clauses) and refresh the calendar.
+You shared your ReservationsApiController code and discussed how to apply filters in the controller.
+You encountered and fixed a DateOnly vs DateTime comparison error.
+You noted that after applying filters, no events appeared on the calendar.
+You discussed the event expansion logic and the impact of the DayOfWeek check.
+You confirmed that using .ToListAsync() directly worked, but using .AsQueryable() with filters did not.
+You determined that the issue was likely with how input parameters were handled or sent from the frontend.
+*/
+
 namespace Project.Pages
 {
     [Authorize(Roles = "Admin,Instructor")]

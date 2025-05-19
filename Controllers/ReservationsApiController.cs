@@ -5,6 +5,15 @@ using Project.Models;
 using System.Security.Claims;
 using Project.Helpers;
 
+/* Promts:
+Calendar Filtering & API
+
+You asked how to add a link from the classroom list to show a filtered version of the calendar for a specific classroom.
+You wanted to confirm if the calendar supports filtering by classroomId via the query string.
+You requested improvements to the appearance of the "Details" and "View Calendar" links in the classroom list.
+API Filtering: You asked about filtering the calendar API by classroomId and other parameters.
+*/
+
 
 [Route("api/reservations")]
 [ApiController]
